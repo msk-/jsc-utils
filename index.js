@@ -168,6 +168,7 @@ const appendComment = (node, comment) => {
 };
 
 module.exports = {
+    appendComment,
     asrt,
     astNodesAreEquivalent,
     astTypesInScope,
