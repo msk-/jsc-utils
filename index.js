@@ -168,13 +168,14 @@ const appendComment = (node, comment) => {
 };
 
 module.exports = {
-    chk,
     asrt,
-    not,
-    callExpressionMatching,
-    buildNestedMemberExpression,
-    summarise,
-    prettyPrint,
+    astNodesAreEquivalent,
     astTypesInScope,
+    buildNestedMemberExpression,
+    callExpressionMatching,
+    chk,
     identifiersInSameScope,
+    not,
+    prettyPrint,
+    summarise,
 };
