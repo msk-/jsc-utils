@@ -1,6 +1,6 @@
 {
   "name": "jsc-utils",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/msk-/jsc-utils#readme",
   "peerDependencies": {
-    "jscodeshift": "0.11.0"
+    "jscodeshift": "^0.10.0"
   }
 }
