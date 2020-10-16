@@ -66,7 +66,7 @@ const buildNestedMemberExpression = (members) =>
     );
 
 // Print the source code of a given expression
-const summarise = (nodeOrPath) => jsc(nodeOrPath).toSource();
+const summarise = (nodeOrPath) => recast.prettyPrint(resolveNode(nodeOrPath)).code;
 const prettyPrint = (nodeOrPath) => console.log(summarise(nodeOrPath));
 
 const astTypesInScope = (path, astType) => jsc(path.scope.path)
@@ -116,5 +116,4 @@ module.exports = {
     identifiersInSameScope,
     not,
     prettyPrint,
-    summarise,
 };
