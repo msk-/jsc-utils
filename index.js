@@ -4,6 +4,9 @@
 //   say something like:
 //     astNodesAreEquivalent(path, jsc.callExpression(jsc.identifier('foo'), jscUtils.ANY))
 //   and that would identify a call to function `foo` with any parameters at all.
+//   Or:
+//     astNodesAreEquivalent(path, jsc.callExpression(jsc.identifier('foo'), jscUtils.ANY.literal))
+//   to identify a call to `foo` with any literal.
 //   Perhaps contribute such a thing upstream.
 // - Where we directly use `jsc` we should probably replace that usage with jscodeshift extensions
 //   and remove our peerDependency on jsc:
@@ -16,85 +19,7 @@ const jsc = require('jscodeshift');
 // jscodeshift.
 const recast = require('recast');
 
-const nodeTypes = [
-    "Printable",
-    "Node",
-    "SourceLocation",
-    "Position",
-    "File",
-    "Program",
-    "Function",
-    "Statement",
-    "EmptyStatement",
-    "BlockStatement",
-    "ExpressionStatement",
-    "IfStatement",
-    "LabeledStatement",
-    "BreakStatement",
-    "ContinueStatement",
-    "WithStatement",
-    "SwitchStatement",
-    "ReturnStatement",
-    "ThrowStatement",
-    "TryStatement",
-    "CatchClause",
-    "WhileStatement",
-    "DoWhileStatement",
-    "ForStatement",
-    "ForInStatement",
-    "DebuggerStatement",
-    "Declaration",
-    "FunctionDeclaration",
-    "FunctionExpression",
-    "VariableDeclaration",
-    "VariableDeclarator",
-    "Expression",
-    "ThisExpression",
-    "ArrayExpression",
-    "ObjectExpression",
-    "Property",
-    "SequenceExpression",
-    "UnaryExpression",
-    "BinaryExpression",
-    "AssignmentExpression",
-    "UpdateExpression",
-    "LogicalExpression",
-    "ConditionalExpression",
-    "NewExpression",
-    "CallExpression",
-    "MemberExpression",
-    "Pattern",
-    "SwitchCase",
-    "Identifier",
-    "Literal",
-    "Comment",
-    "Property",
-    "ObjectMethod",
-    "ObjectProperty",
-    "SpreadProperty",
-    "SpreadElement",
-    "MethodDefinition",
-    "VariableDeclarator",
-    "ClassPropertyDefinition",
-    "ClassProperty",
-    "ClassPrivateProperty",
-    "ClassMethod",
-    "ClassPrivateMethod",
-    "Property",
-    "PropertyPattern",
-    "SpreadPropertyPattern",
-    "SpreadProperty",
-    "ObjectProperty",
-    "RestProperty",
-    "MethodDefinition",
-    "VariableDeclarator",
-    "ClassPropertyDefinition",
-    "ClassProperty",
-    "MethodDefinition",
-    "VariableDeclarator",
-    "ClassPropertyDefinition",
-    "ClassProperty",
-];
+const nodeTypes = Object.keys(jsc).filter((k) => jsc[k].kind === 'PredicateType');
 
 // So we can do this:
 //   jsc(src).find(jsc.Identifier).filter(chk.VariableDeclaration)
