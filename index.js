@@ -1,5 +1,20 @@
 
+// TODO:
+// - A "partial match" functionality for astNodesAreEquivalent would be excellent. Such that we could
+//   say something like:
+//     astNodesAreEquivalent(path, jsc.callExpression(jsc.identifier('foo'), jscUtils.ANY))
+//   and that would identify a call to function `foo` with any parameters at all.
+//   Perhaps contribute such a thing upstream.
+// - Where we directly use `jsc` we should probably replace that usage with jscodeshift extensions
+//   and remove our peerDependency on jsc:
+//   https://github.com/facebook/jscodeshift#extensibility
+// - Write something to determine the closest shared scope. Seems `path` types have a `.scope`
+//   property.
+
 const jsc = require('jscodeshift');
+// Notice recast is not in the project dependencies. We're deliberately using it transitively from
+// jscodeshift.
+const recast = require('recast');
 
 const nodeTypes = [
     "Printable",
@@ -89,13 +104,13 @@ const chk = Object.assign({}, ...nodeTypes.map(key => ({ [key]: jsc[key].check.b
 const asrt = Object.assign({}, ...nodeTypes.map(key => ({ [key]: jsc[key].assert.bind(jsc[key]) })));
 const not = (f) => (...args) => !f(...args);
 
+// If supplied a node, return the node, otherwise resolve the node from the path
+const resolveNode = (nodeOrPath) => nodeOrPath instanceof jsc.types.NodePath ? nodeOrPath.value : nodeOrPath;
+
 // Check node equivalence. Useful for determining whether two variables have the same definition.
-// Next: write something to determine the lowest shared scope. Seems `path` types have a `.scope`
-// property.
 // Usage: astNodesAreEquivalent(path1.value, path2.value)
 const astNodesAreEquivalent = (...args) => {
     const equiv = jsc.types.astNodesAreEquivalent;
-    const resolveNode = (nodeOrPath) => nodeOrPath instanceof jsc.types.NodePath ? nodeOrPath.value : nodeOrPath;
     if (args.length === 0) {
         return equiv(...args);
     }
@@ -109,15 +124,13 @@ const astNodesAreEquivalent = (...args) => {
     return equiv(resolveNode(args[0]), resolveNode(args[1]));
 };
 
-// TODO: performance: this function is fairly slow
 // TODO: this should probably either incorporate the .find method, so the user does not have to
 //       say j.find(jsc.CallExpression).filter(callExpressionMatching) _or_ it should be
 //       registered on Collection (see the jscodeshift docs, or src/collections/ in the
 //       jscodeshift source code).
-const callExpressionMatching = (regex) => (astPath) => {
-    const call = jsc(astPath.get('callee')).toSource();
-    return call.match(regex);
-};
+// TODO: strip comments from the supplied path/node?
+const callExpressionMatching = (regex) => (nodeOrPath) =>
+    recast.prettyPrint(resolveNode(nodeOrPath).callee, { wrapColumn: Infinity }).code.match(regex);
 
 // Given an array of strings, construct a nested MemberExpression AST left-to-right. e.g.
 // jscodeshift(buildNestedMemberExpression(['assert', 'equal'])).toSource() -> 'assert.equal'
