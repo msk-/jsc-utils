@@ -19,18 +19,22 @@ const jsc = require('jscodeshift');
 // jscodeshift.
 const recast = require('recast');
 
+// If supplied a node, return the node, otherwise resolve the node from the path
+const resolveNode = (nodeOrPath) => nodeOrPath instanceof jsc.types.NodePath ? nodeOrPath.value : nodeOrPath;
+
 const nodeTypes = Object.keys(jsc).filter((k) => jsc[k].kind === 'PredicateType');
 
 // So we can do this:
 //   jsc(src).find(jsc.Identifier).filter(chk.VariableDeclaration)
 // Instead of:
 //   jsc(src).find(jsc.Identifier).filter((path) => jsc.VariableDeclaration.check(path))
-const chk = Object.assign({}, ...nodeTypes.map(key => ({ [key]: jsc[key].check.bind(jsc[key]) })));
-const asrt = Object.assign({}, ...nodeTypes.map(key => ({ [key]: jsc[key].assert.bind(jsc[key]) })));
+const chk = Object.assign({}, ...nodeTypes.map(key => ({
+    [key]: (pathOrNode, ...args) => jsc[key].check(resolveNode(pathOrNode), ...args)
+})));
+const asrt = Object.assign({}, ...nodeTypes.map(key => ({
+    [key]: (pathOrNode, ...args) => jsc[key].assert(resolveNode(pathOrNode), ...args)
+})));
 const not = (f) => (...args) => !f(...args);
-
-// If supplied a node, return the node, otherwise resolve the node from the path
-const resolveNode = (nodeOrPath) => nodeOrPath instanceof jsc.types.NodePath ? nodeOrPath.value : nodeOrPath;
 
 // Check node equivalence. Useful for determining whether two variables have the same definition.
 // Usage: astNodesAreEquivalent(path1.value, path2.value)
